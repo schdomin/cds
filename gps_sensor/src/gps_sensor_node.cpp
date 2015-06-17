@@ -16,32 +16,41 @@ int main( int argc, char** argv )
     std::printf( "(main) launched: %s\n", argv[0] );
 
     //ds configuration parameters
-    const std::string strTopicSubscriberTFBase( "" );
-    const std::string strTopicSubscriberTFCurrent( "" );
+    std::string strTopicSubscriberTFBase( "" );
+    std::string strTopicSubscriberTFCurrent( "" );
+    double dRateSubscriberHz( 10.0 );
     const std::string strTopicPublisherPose2D ( "pose2d" );
     const uint32_t uMaximumQueueSize( 10 );
-    const double dRateSubscriberHz( 10.0 );
 
     //ds setup node
     ros::init( argc, argv, "gps_sensor_node" );
     ros::NodeHandle hNode( ros::NodeHandle( "~" ) );
 
-    //ds escape here on failure
+    //ds escape here on node failure
     if( !hNode.ok( ) )
     {
-        std::printf( "\n(main) ERROR: unable to instantiate node\n" );
+        std::printf( "(main) ERROR: unable to instantiate node\n" );
         std::printf( "(main) terminated: %s\n", argv[0] );
         std::fflush( stdout );
-        return 1;
+        return -1;
+    }
+
+    //ds escape on parameter reading failure
+    if( !hNode.getParam( "tf_base", strTopicSubscriberTFBase ) || !hNode.getParam( "tf_robot", strTopicSubscriberTFCurrent ) || !hNode.getParam( "frequency", dRateSubscriberHz ) )
+    {
+        std::printf( "(main) ERROR: unable to retrieve configuration parameters, check parameters file\n" );
+        std::printf( "(main) terminated: %s\n", argv[0] );
+        std::fflush( stdout );
+        return -1;
     }
 
     //ds log configuration
     std::printf( "(main) ROS node namespace              := '%s'\n", hNode.getNamespace( ).c_str( ) );
     std::printf( "(main) ROS strTopicSubscriberTFBase    := '%s'\n", strTopicSubscriberTFBase.c_str( ) );
     std::printf( "(main) ROS strTopicSubscriberTFCurrent := '%s'\n", strTopicSubscriberTFCurrent.c_str( ) );
+    std::printf( "(main) ROS dRateSubscriberHz           := '%.1f'\n", dRateSubscriberHz );
     std::printf( "(main) ROS strTopicPublisherPose2D     := '%s'\n", ( hNode.getNamespace( ) + '/' + strTopicPublisherPose2D ).c_str( ) );
     std::printf( "(main) ROS uMaximumQueueSize           := '%u'\n", uMaximumQueueSize );
-    std::printf( "(main) ROS dRateSubscriberHz           := '%.1f'\n", dRateSubscriberHz );
     std::fflush( stdout );
 
     //ds transform subscriber
